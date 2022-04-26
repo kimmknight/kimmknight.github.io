@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Cisco IOS Basic Config Generator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://unpkg.com/vue@next"></script>
+        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+        <style>
+                label {
+                    color: #d6d6d6;
+                }
+
+                .w-100 {
+                    width: 100%;
+                }
+
+                .input-width {
+                    max-width: 20em;
+                }
+
+                .flex-container {
+                    display: flex;
+                }
+
+                #options-container {
+                    min-width: 20em;
+                }
+
+                #script-container textarea {
+                    width: 100%;
+                    height: 100%;
+                    resize: none;
+                    border: none;
+                    outline: none;
+                    font-family: monospace;
+                }
+
+                @media (max-width: 600px) {
+                    .flex-container {
+                        flex-direction: column;
+                    }
+
+                    #smallscreen-spacer {
+                        display: block!important;
+                    }
+
+                    #script-container textarea {
+                        min-height: 10em;
+                    }
+                }
+
+                #smallscreen-spacer {
+                        display: none;
+                    }
+        </style>
+    </head>
+    
+<body class="w3-dark-gray">
+
+    <div id="app">
+        <div class="w3-panel flex-container">
+            <div id="options-container">
+                <div>
+                    <input type="checkbox" id="check-hostname" v-model="setHostname" /><label>Set the hostname</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="hostname" v-if="setHostname" />
+                </div>
+    
+                <div>
+                    <input type="checkbox" id="check-domain" v-model="setDomain" /><label>Set the domain</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="domain" v-if="setDomain" />
+                </div>
+    
+                <div>
+                    <input type="checkbox" id="check-enablesecret" v-model="setEnableSecret" /><label>Set the enable secret</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="enableSecret" v-if="setEnableSecret" />
+                </div>
+    
+                <div>
+                    <input type="checkbox" id="check-consolepassword" v-model="setConsolePassword" /><label>Set the console password</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="consolePassword" v-if="setConsolePassword" />
+                </div>
+    
+                <div>
+                    <input type="checkbox" id="check-telnet" v-model="setTelnet" @change="setTelnet ? setSsh = false : nothing" /><label>Enable telnet and set a password</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="vtyPassword" v-if="setTelnet" />
+                </div>
+    
+                <div>
+                    <input type="checkbox" id="check-hostname" v-model="setSsh" @change="setSsh ? setTelnet = false : nothing" /><label>Enable SSH and create a user</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="sshCreateUsername" v-if="setSsh" />
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="sshCreatePassword" v-if="setSsh" />
+                </div>
+    
+                <div>
+                    <input type="checkbox" id="check-hostname" v-model="setDisableIpDomainLookup" /><label>Disable ip domain lookup in CLI</label>
+                </div><div>
+                    <input type="checkbox" id="check-hostname" v-model="setDisableConsoleLogging" /><label>Disable console logging</label>
+                </div>
+                <div id="smallscreen-spacer">&nbsp</div>
+            </div>
+    
+            
+            <div id="script-container" class="w3-container w-100">
+                <button class="w3-button w3-light-gray w3-margin-bottom" @click="copyToClipboard">
+                    Copy
+                </button>
+                <button class="w3-button w3-light-gray w3-margin-bottom w3-margin-left" @click="downloadInBrowser(hostname, computedScript)">
+                    Download
+                </button>
+                <textarea class="w3-dark-gray" readonly v-model="computedScript"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ccgapp = {
+            data() {
+                return {
+                    setHostname: true,
+                    setDomain: true,
+                    setEnableSecret: true,
+                    setConsolePassword: true,
+                    setTelnet: false,
+                    setSsh: true,
+                    setDisableConsoleLogging: true,
+                    setDisableIpDomainLookup: true,
+
+                    hostname: "Device1",
+                    domain: "lab.local",
+                    enableSecret: "class",
+                    consolePassword: "cisco",
+                    vtyPassword: "cisco",
+                    sshCreateUsername: "admin",
+                    sshCreatePassword: "cisco",
+
+                }
+            },
+
+            computed: {
+                computedScript() {
+                    var script = ""
+
+                    if (this.setHostname) { script += "hostname " + this.hostname + "\r\n" }
+                    if (this.setDomain) { script += "ip domain-name " + this.domain + "\r\n" }
+                    if (this.setEnableSecret) { script += "enable secret " + this.enableSecret + "\r\n" }
+                    if (this.setConsolePassword) { script += "line console 0\r\npassword " + this.consolePassword + "\r\nlogin\r\n" }
+                    if (this.setTelnet) { script += "line vty 0 4\r\npassword " + this.vtyPassword + "\r\nlogin\r\nexit\r\n" }
+                    if (this.setSsh) { script += "crypto key generate rsa\r\n2048\r\nip ssh version 2\r\nline vty 0 4\r\ntransport input ssh\r\nlogin local\r\nusername " + this.sshCreateUsername + " password " + this.sshCreatePassword + "\r\n"}
+                    if (this.setDisableIpDomainLookup) { script += "no ip domain-lookup\r\n"}
+                    if (this.setDisableConsoleLogging) { script += "no logging console\r\n"}
+
+                    return script
+                }
+            },
+
+            methods: {
+                copyToClipboard() {
+                    navigator.clipboard.writeText(this.computedScript)
+                },
+
+                downloadInBrowser(filename, text) {
+                    let element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                    element.setAttribute('download', filename);
+
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+
+                    element.click();
+
+                    document.body.removeChild(element);
+                }
+            }
+        }
+
+        app = Vue.createApp(ccgapp)
+        vm = app.mount("#app")
+    </script>
+</body>
+</html>
