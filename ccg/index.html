@@ -7,6 +7,11 @@
         <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 
         <style>
+
+                h1 {
+                    text-shadow:1px 1px 0 #444;
+                }
+
                 label {
                     color: #d6d6d6;
                 }
@@ -21,6 +26,10 @@
 
                 .flex-container {
                     display: flex;
+                }
+
+                #topbar {
+                    background-color: rgb(40, 42, 53);
                 }
 
                 #options-container {
@@ -46,57 +55,74 @@
                     }
 
                     #script-container textarea {
-                        min-height: 10em;
+                        min-height: 15em;
+                        border: 1px solid #d6d6d6;
                     }
                 }
 
                 #smallscreen-spacer {
                         display: none;
-                    }
+                }
         </style>
     </head>
-    
+
 <body class="w3-dark-gray">
 
     <div id="app">
+        <div class="w3-bar" id="topbar">
+            <h1 class="w3-bar-item">Cisco Config Generator</h1>
+        </div>
         <div class="w3-panel flex-container">
             <div id="options-container">
+                <button class="w3-button w3-light-gray w3-margin-bottom" @click="saveToBrowserStorage">
+                    Save
+                </button>
+                <button class="w3-button w3-light-gray w3-margin-bottom w3-margin-left" @click="resetToDefaults">
+                    Reset
+                </button>
                 <div>
-                    <input type="checkbox" id="check-hostname" v-model="setHostname" /><label>Set the hostname</label>
-                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="hostname" v-if="setHostname" />
+                    <input type="checkbox" id="check-hostname" v-model="appData.setHostname" /><label>Set the hostname</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="appData.hostname" v-if="appData.setHostname" />
                 </div>
     
                 <div>
-                    <input type="checkbox" id="check-domain" v-model="setDomain" /><label>Set the domain</label>
-                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="domain" v-if="setDomain" />
+                    <input type="checkbox" id="check-domain" v-model="appData.setDomain" /><label>Set the domain</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="appData.domain" v-if="appData.setDomain" />
                 </div>
     
                 <div>
-                    <input type="checkbox" id="check-enablesecret" v-model="setEnableSecret" /><label>Set the enable secret</label>
-                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="enableSecret" v-if="setEnableSecret" />
+                    <input type="checkbox" id="check-enablesecret" v-model="appData.setEnableSecret" /><label>Set the enable secret</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="appData.enableSecret" v-if="appData.setEnableSecret" />
                 </div>
     
                 <div>
-                    <input type="checkbox" id="check-consolepassword" v-model="setConsolePassword" /><label>Set the console password</label>
-                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="consolePassword" v-if="setConsolePassword" />
+                    <input type="checkbox" id="check-consolepassword" v-model="appData.setConsolePassword" /><label>Set the console password</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="appData.consolePassword" v-if="appData.setConsolePassword" />
                 </div>
     
                 <div>
-                    <input type="checkbox" id="check-telnet" v-model="setTelnet" @change="setTelnet ? setSsh = false : nothing" /><label>Enable telnet and set a password</label>
-                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="vtyPassword" v-if="setTelnet" />
+                    <input type="checkbox" id="check-telnet" v-model="appData.setTelnet" @change="appData.setTelnet ? appData.setSsh = false : nothing" /><label>Enable telnet and set a password</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="appData.vtyPassword" v-if="appData.setTelnet" />
                 </div>
     
                 <div>
-                    <input type="checkbox" id="check-hostname" v-model="setSsh" @change="setSsh ? setTelnet = false : nothing" /><label>Enable SSH and create a user</label>
-                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="sshCreateUsername" v-if="setSsh" />
-                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="sshCreatePassword" v-if="setSsh" />
+                    <input type="checkbox" id="check-ssh" v-model="appData.setSsh" @change="appData.setSsh ? appData.setTelnet = false : nothing" /><label>Enable SSH and create a user</label>
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="appData.sshCreateUsername" v-if="appData.setSsh" />
+                    <input class="w3-input input-width w3-dark-gray" type="text" v-model="appData.sshCreatePassword" v-if="appData.setSsh" />
                 </div>
     
                 <div>
-                    <input type="checkbox" id="check-hostname" v-model="setDisableIpDomainLookup" /><label>Disable ip domain lookup in CLI</label>
-                </div><div>
-                    <input type="checkbox" id="check-hostname" v-model="setDisableConsoleLogging" /><label>Disable console logging</label>
+                    <input type="checkbox" id="check-noipdomainlookup" v-model="appData.setDisableIpDomainLookup" /><label>Disable ip domain lookup in CLI</label>
                 </div>
+                
+                <div>
+                    <input type="checkbox" id="check-noconsolelogging" v-model="appData.setDisableConsoleLogging" /><label>Disable console logging</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="check-passwordencryption" v-model="appData.setPasswordEncryption" /><label>Enable password encryption</label>
+                </div>
+
                 <div id="smallscreen-spacer">&nbsp</div>
             </div>
     
@@ -117,23 +143,25 @@
         const ccgapp = {
             data() {
                 return {
-                    setHostname: true,
-                    setDomain: true,
-                    setEnableSecret: true,
-                    setConsolePassword: true,
-                    setTelnet: false,
-                    setSsh: true,
-                    setDisableConsoleLogging: true,
-                    setDisableIpDomainLookup: true,
+                    appData: {
+                        setHostname: true,
+                        setDomain: true,
+                        setEnableSecret: true,
+                        setConsolePassword: true,
+                        setTelnet: false,
+                        setSsh: true,
+                        setDisableConsoleLogging: true,
+                        setDisableIpDomainLookup: true,
+                        setPasswordEncryption: true,
 
-                    hostname: "Device1",
-                    domain: "lab.local",
-                    enableSecret: "class",
-                    consolePassword: "cisco",
-                    vtyPassword: "cisco",
-                    sshCreateUsername: "admin",
-                    sshCreatePassword: "cisco",
-
+                        hostname: "Device1",
+                        domain: "lab.local",
+                        enableSecret: "class",
+                        consolePassword: "cisco",
+                        vtyPassword: "cisco",
+                        sshCreateUsername: "admin",
+                        sshCreatePassword: "cisco",
+                    }
                 }
             },
 
@@ -141,14 +169,15 @@
                 computedScript() {
                     var script = ""
 
-                    if (this.setHostname) { script += "hostname " + this.hostname + "\r\n" }
-                    if (this.setDomain) { script += "ip domain-name " + this.domain + "\r\n" }
-                    if (this.setEnableSecret) { script += "enable secret " + this.enableSecret + "\r\n" }
-                    if (this.setConsolePassword) { script += "line console 0\r\npassword " + this.consolePassword + "\r\nlogin\r\n" }
-                    if (this.setTelnet) { script += "line vty 0 4\r\npassword " + this.vtyPassword + "\r\nlogin\r\nexit\r\n" }
-                    if (this.setSsh) { script += "crypto key generate rsa\r\n2048\r\nip ssh version 2\r\nline vty 0 4\r\ntransport input ssh\r\nlogin local\r\nusername " + this.sshCreateUsername + " password " + this.sshCreatePassword + "\r\n"}
-                    if (this.setDisableIpDomainLookup) { script += "no ip domain-lookup\r\n"}
-                    if (this.setDisableConsoleLogging) { script += "no logging console\r\n"}
+                    if (this.appData.setHostname) { script += "hostname " + this.appData.hostname + "\r\n" }
+                    if (this.appData.setDomain) { script += "ip domain-name " + this.appData.domain + "\r\n" }
+                    if (this.appData.setEnableSecret) { script += "enable secret " + this.appData.enableSecret + "\r\n" }
+                    if (this.appData.setConsolePassword) { script += "line console 0\r\npassword " + this.appData.consolePassword + "\r\nlogin\r\n" }
+                    if (this.appData.setTelnet) { script += "line vty 0 4\r\npassword " + this.appData.vtyPassword + "\r\nlogin\r\nexit\r\n" }
+                    if (this.appData.setSsh) { script += "crypto key generate rsa\r\n2048\r\nip ssh version 2\r\nline vty 0 4\r\ntransport input ssh\r\nlogin local\r\nusername " + this.appData.sshCreateUsername + " password " + this.appData.sshCreatePassword + "\r\n"}
+                    if (this.appData.setDisableIpDomainLookup) { script += "no ip domain-lookup\r\n"}
+                    if (this.appData.setDisableConsoleLogging) { script += "no logging console\r\n"}
+                    if (this.appData.setPasswordEncryption) { script += "service password-encryption\r\n"}
 
                     return script
                 }
@@ -170,7 +199,23 @@
                     element.click();
 
                     document.body.removeChild(element);
+                },
+
+                saveToBrowserStorage() {
+                    localStorage.ccgapp = JSON.stringify(this.appData)
+                },
+
+                loadFromBrowserStorage() {
+                    this.appData = JSON.parse(localStorage.ccgapp)
+                },
+
+                resetToDefaults() {
+                    Object.assign(this.$data, this.$options.data())
                 }
+            },
+
+            mounted() {
+                this.loadFromBrowserStorage()
             }
         }
 
