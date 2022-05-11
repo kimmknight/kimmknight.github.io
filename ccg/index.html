@@ -1,75 +1,85 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Cisco IOS Basic Config Generator</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://unpkg.com/vue@next"></script>
-        <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<head>
+    <title>Cisco IOS Basic Config Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://unpkg.com/vue@next"></script>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 
-        <style>
 
-                h1 {
-                    text-shadow:1px 1px 0 #444;
-                }
 
-                label {
-                    color: #d6d6d6;
-                }
 
-                .w-100 {
-                    width: 100%;
-                }
 
-                .input-width {
-                    max-width: 20em;
-                }
+    
+    <style>
 
+            h1 {
+                text-shadow:1px 1px 0 #444;
+            }
+
+            label {
+                color: #d6d6d6;
+            }
+
+            .w-100 {
+                width: 100%;
+            }
+
+            .input-width {
+                max-width: 20em;
+            }
+
+            .flex-container {
+                display: flex;
+            }
+
+            .timeout-value-input {
+                width: 4em;
+                display: inline-block;
+            }
+
+            #topbar {
+                background-color: rgb(40, 42, 53);
+            }
+
+            #options-container {
+                min-width: 20em;
+            }
+
+            #script-container textarea {
+                width: 100%;
+                height: 100%;
+                resize: none;
+                border: none;
+                outline: none;
+                font-family: monospace;
+            }
+
+            @media (max-width: 600px) {
                 .flex-container {
-                    display: flex;
-                }
-
-                .timeout-value-input {
-                    width: 4em;
-                    display: inline-block;
-                }
-
-                #topbar {
-                    background-color: rgb(40, 42, 53);
-                }
-
-                #options-container {
-                    min-width: 20em;
-                }
-
-                #script-container textarea {
-                    width: 100%;
-                    height: 100%;
-                    resize: none;
-                    border: none;
-                    outline: none;
-                    font-family: monospace;
-                }
-
-                @media (max-width: 600px) {
-                    .flex-container {
-                        flex-direction: column;
-                    }
-
-                    #smallscreen-spacer {
-                        display: block!important;
-                    }
-
-                    #script-container textarea {
-                        min-height: 15em;
-                        border: 1px solid #d6d6d6;
-                    }
+                    flex-direction: column;
                 }
 
                 #smallscreen-spacer {
-                        display: none;
+                    display: block!important;
                 }
-        </style>
-    </head>
+
+                #script-container textarea {
+                    min-height: 15em;
+                    border: 1px solid #d6d6d6;
+                }
+            }
+
+            #smallscreen-spacer {
+                    display: none;
+            }
+    </style>
+</head>
+
+
+
+
+
 
 <body class="w3-dark-gray">
 
@@ -160,6 +170,11 @@
         </div>
     </div>
 
+
+
+
+
+
     <script>
         const ccgapp = {
             data() {
@@ -217,10 +232,14 @@
             },
 
             methods: {
+
+                // Insert the current Cisco IOS script (this.computedScript) into the user's clipboard
                 copyToClipboard() {
                     navigator.clipboard.writeText(this.computedScript)
                 },
 
+
+                // Creates a file for the user to download in their browser
                 downloadInBrowser(filename, text) {
                     let element = document.createElement('a');
                     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -234,26 +253,45 @@
                     document.body.removeChild(element);
                 },
 
+
+                // Save appData into the browser's localStorage (Key name: "ccgapp")
                 saveToBrowserStorage() {
                     localStorage.ccgapp = JSON.stringify(this.appData)
                 },
 
+
+                // Merge the default appData with the appData loaded from localStorage
                 loadFromBrowserStorage() {
-                    this.appData = JSON.parse(localStorage.ccgapp)
+                    
+                    // Merging is better than just loading localStorage into appData because
+                    // if any values are missing/not loaded, the default value will be there.
+                    this.appData = {
+                        ...this.appData,
+                        ...JSON.parse(localStorage.ccgapp)
+                    }
                 },
 
+
+                // Reset all values to defaults
                 resetToDefaults() {
+                    // This is a bit dirty, but overwrites the entire current vue data() with defaults
+                    // (The defaults are the ones defined above in data() and are actually loaded in 
+                    // this app before loadFromBrowserStorage() is called)
+
                     Object.assign(this.$data, this.$options.data())
                 }
             },
 
             mounted() {
+                // After this app is loaded in the browser, call the function to load saved user data from
+                // browser storage (only if saved data exists)
                 if (localStorage.ccgapp) {
                     this.loadFromBrowserStorage()
                 }
             }
         }
 
+        // Mount the app defined above into the HTML object with the id "app"
         app = Vue.createApp(ccgapp)
         vm = app.mount("#app")
     </script>
